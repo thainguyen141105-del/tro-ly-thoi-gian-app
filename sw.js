@@ -1,5 +1,5 @@
 // Service worker: chạy offline (lưu vỏ app) + hiện thông báo + mở đúng màn khi bấm thông báo.
-const CACHE = 'tro-ly-v1';
+const CACHE = 'tro-ly-v2';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest'])).then(() => self.skipWaiting()));
 });
@@ -8,7 +8,9 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  if (url.pathname.endsWith('/version.json')) return; // luôn lấy thẳng từ mạng để biết có bản mới
   // Mạng trước, lỗi mạng thì lấy bản đã lưu → dùng được khi offline.
   e.respondWith(
     fetch(req).then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); return res; })
