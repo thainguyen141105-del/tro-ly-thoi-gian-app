@@ -24,8 +24,12 @@ self.addEventListener('push', (e) => {
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const href = (e.notification.data && e.notification.data.href) || '#hom-nay';
+  const id = e.notification.tag;
+  // Đường dẫn sâu "#thong-bao/<id>": app tự tìm đúng thẻ của thông báo (notificationTarget trong src/lib/notify.ts),
+  // kể cả thông báo cũ chỉ có href "#hom-nay"; app đánh dấu thông báo đó đã đọc.
+  const link = id && id !== 'test' ? '#thong-bao/' + encodeURIComponent(id) : href;
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
-    if (cs.length) { cs[0].postMessage({ href }); return cs[0].focus(); }
-    return self.clients.openWindow('./' + href);
+    if (cs.length) { cs[0].postMessage({ href: link }); return cs[0].focus(); }
+    return self.clients.openWindow('./' + link);
   }));
 });
